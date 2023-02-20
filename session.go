@@ -12,16 +12,18 @@ type Session struct {
 	conn         *Conn
 	closed       chan struct{}
 	requestQueue chan Request
-	packer       Packer
+	// packer       Packer
+	protocol Protocol
 }
 
-func NewSession(conn *Conn, packer Packer) *Session {
+func NewSession(conn *Conn, protocol Protocol) *Session {
 	return &Session{
 		id:           uuid.NewString(),
 		conn:         conn,
 		closed:       make(chan struct{}),
 		requestQueue: make(chan Request, 10),
-		packer:       packer,
+		// packer:       packer,
+		protocol: protocol,
 	}
 }
 
@@ -40,7 +42,7 @@ func (s *Session) read(router *Router) {
 	tcpConn := s.conn.GetTCPConn()
 
 	for {
-		message, err := s.packer.Unpack(tcpConn)
+		message, err := s.protocol.Unpack(tcpConn)
 
 		if nil != err {
 			if errors.Is(err, io.EOF) {
@@ -95,11 +97,11 @@ func (s *Session) read(router *Router) {
 		request := NewRequest(s, message)
 
 		// TODO
-		go router.Handle(request)
+		go s.protocol.Handle(router, request)
 	}
 
 	s.close()
-	logger.Debugf("session %s read exit because of error\n", s.id)
+	logger.Debugf("session %s read exit because of error", s.id)
 }
 
 func (s *Session) write() {
@@ -114,7 +116,7 @@ func (s *Session) write() {
 		case request = <-s.requestQueue:
 		}
 
-		writeBytes, err := s.packer.Pack(request.Message())
+		writeBytes, err := s.protocol.Pack(request.Message())
 
 		if nil != err {
 			logger.Errorf("session %s pack outbound message err: %s", s.id, err)

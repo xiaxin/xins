@@ -2,7 +2,6 @@ package xins
 
 import (
 	"fmt"
-	"runtime/debug"
 )
 
 // 路由
@@ -37,22 +36,24 @@ func (rg *Router) Get(id uint32) (Route, error) {
 	return nil, fmt.Errorf("[%d] is not exists", id)
 }
 
-func (rg *Router) Handle(request Request) {
+// func (rg *Router) Handle(request Request) {
 
-	// todo
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Errorf("%s", fmt.Sprintf("PANIC | %s | %+v \n%s", r, request.SessionID(), debug.Stack()))
-		}
-	}()
+// 	// todo
+// 	defer func() {
+// 		if r := recover(); r != nil {
+// 			logger.Errorf("%s", fmt.Sprintf("PANIC | %s | %+v \n%s", r, request.SessionID(), debug.Stack()))
+// 		}
+// 	}()
 
-	id := request.ID()
+// 	// todo
+// 	message := request.Message()
+// 	id := message.(*Message).ID()
 
-	router, ok := rg.table[id]
+// 	router, ok := rg.table[id]
 
-	if !ok {
-		fmt.Printf("[error] [router handle] id:%d is not found\n", id)
-		return
-	}
-	router.Handle(request)
-}
+// 	if !ok {
+// 		fmt.Printf("[error] [router handle] id:%d is not found\n", id)
+// 		return
+// 	}
+// 	router.Handle(request)
+// }

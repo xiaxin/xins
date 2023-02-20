@@ -1,4 +1,4 @@
-package xins
+package protocol
 
 import (
 	"bytes"

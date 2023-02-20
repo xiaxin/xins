@@ -1,4 +1,4 @@
-package xins
+package protocol
 
 func NewMessage(id uint32, data []byte) *Message {
 	return &Message{

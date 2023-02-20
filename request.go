@@ -4,10 +4,10 @@ package xins
 type Request struct {
 	session *Session
 
-	message *Message
+	message interface{}
 }
 
-func NewRequest(session *Session, message *Message) Request {
+func NewRequest(session *Session, message interface{}) Request {
 	return Request{session, message}
 }
 
@@ -15,12 +15,8 @@ func (r *Request) Session() *Session {
 	return r.session
 }
 
-func (r *Request) Message() *Message {
+func (r *Request) Message() interface{} {
 	return r.message
-}
-
-func (r *Request) ID() uint32 {
-	return r.message.ID()
 }
 
 func (r *Request) SessionID() string {

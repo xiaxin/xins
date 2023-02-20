@@ -13,7 +13,9 @@ type Server struct {
 	listener    net.Listener
 	stopped     chan struct{}
 
-	packer Packer
+	// packer Packer
+	// 协议
+	protocol Protocol
 }
 
 func NewServer() *Server {
@@ -22,7 +24,8 @@ func NewServer() *Server {
 		router:      NewRouter(),
 
 		stopped: make(chan struct{}),
-		packer:  NewDefaultPacker(),
+		// packer:   NewDefaultPacker(),
+		protocol: NewDefaultProtocol(),
 	}
 }
 
@@ -78,7 +81,7 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 
 	conn := s.NewConn(tcpConn)
 
-	session := NewSession(conn, s.packer)
+	session := NewSession(conn, s.protocol)
 
 	s.AddConn(conn)
 	defer s.DelConn(conn)

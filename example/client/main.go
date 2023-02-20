@@ -7,10 +7,11 @@ import (
 	"net"
 	"time"
 	"xins"
+	protocol "xins/protocol/default"
 )
 
 var (
-	handle = xins.NewDefaultPacker()
+	handle = protocol.NewDefaultPacker()
 	codc   = &xins.JsonCodec{}
 )
 
@@ -35,7 +36,7 @@ func speak(conn net.Conn) {
 
 	for {
 
-		message := xins.NewMessage(1, []byte("ping"))
+		message := protocol.NewMessage(1, []byte("ping"))
 
 		m, _ := handle.Pack(message)
 
