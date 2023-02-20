@@ -1,0 +1,29 @@
+{
+    // use system "gopath"
+    "go.inferGopath": false,
+    // go test add "-v" flag
+    "go.testFlags": ["-v"],
+    
+    "go.useLanguageServer": true,
+    "go.formatTool": "goreturns",
+
+    "go.testTimeout": "5s",
+    "go.autocompleteUnimportedPackages": true,
+
+    "[go]": {
+        "editor.snippetSuggestions": "none",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+
+    "gopls": {
+        "usePlaceholders": true, // add parameter placeholders when completing a function
+        "completionDocumentation": true // for documentation in completion items
+    },
+
+
+    // command + 点击 查看代码
+    // "editor.multiCursorModifier": "alt",
+}
