@@ -1,8 +1,6 @@
 package router
 
-import (
-	"xins"
-)
+import "xins"
 
 type Panic struct {
 }

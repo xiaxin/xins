@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"xins"
 	"xins/example/server/router"
+	protocol "xins/protocol/default"
 
 	"os"
 	"os/signal"
@@ -11,10 +12,12 @@ import (
 )
 
 func main() {
-	s := xins.NewServer()
+	protocol := protocol.NewDefaultProtocol()
+	protocol.AddRoute(1, &router.Ping{})
+	protocol.AddRoute(2, &router.Panic{})
 
-	s.AddRoute(1, &router.Ping{})
-	s.AddRoute(2, &router.Panic{})
+	s := xins.NewServer(xins.ServerProtocol(protocol))
+
 	go s.Run(":9900")
 
 	sigs := make(chan os.Signal, 1)

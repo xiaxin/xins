@@ -9,28 +9,24 @@ const ()
 // 服务器
 type Server struct {
 	connManager *ConnManager
-	router      *Router
 	listener    net.Listener
 	stopped     chan struct{}
 
 	// packer Packer
 	// 协议
-	protocol Protocol
+	options *Options
 }
 
-func NewServer() *Server {
+func NewServer(opts ...Option) *Server {
+	options := newOptions(opts...)
+
 	return &Server{
 		connManager: NewConnManager(),
-		router:      NewRouter(),
 
 		stopped: make(chan struct{}),
-		// packer:   NewDefaultPacker(),
-		protocol: NewDefaultProtocol(),
-	}
-}
 
-func (s *Server) AddRoute(id uint32, route Route) {
-	s.router.Add(id, route)
+		options: options,
+	}
 }
 
 func (s *Server) NewConn(conn net.Conn) *Conn {
@@ -81,12 +77,12 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 
 	conn := s.NewConn(tcpConn)
 
-	session := NewSession(conn, s.protocol)
+	session := NewSession(conn, s.options.Protocol())
 
 	s.AddConn(conn)
 	defer s.DelConn(conn)
 
-	go session.read(s.router)
+	go session.read()
 	go session.write()
 
 	select {
@@ -111,4 +107,8 @@ func (s *Server) isStopped() bool {
 	default:
 		return false
 	}
+}
+
+func (s *Server) Options() *Options {
+	return s.options
 }

@@ -1,7 +1,8 @@
-package xins
+package protocol
 
 import (
 	"fmt"
+	"xins"
 )
 
 // 路由
@@ -11,7 +12,7 @@ type Router struct {
 
 // 路由接口
 type Route interface {
-	Handle(request Request)
+	Handle(request xins.Request)
 }
 
 func NewRouter() *Router {

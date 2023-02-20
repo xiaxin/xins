@@ -35,14 +35,18 @@ func (s *Session) SetID(id string) {
 	s.id = id
 }
 
-func (s *Session) read(router *Router) {
+func (s *Session) Conn() *Conn {
+	return s.conn
+}
+
+func (s *Session) read() {
 	// TODO
 	logger.Debug("[conn serve start]")
 
-	tcpConn := s.conn.GetTCPConn()
-
+	// TODO
 	for {
-		message, err := s.protocol.Unpack(tcpConn)
+
+		err := s.protocol.Handle(s)
 
 		if nil != err {
 			if errors.Is(err, io.EOF) {
@@ -51,53 +55,6 @@ func (s *Session) read(router *Router) {
 			logger.Errorf("[recv error] [read head] %s", err.Error())
 			continue
 		}
-
-		// // 读取头数据
-		// headData := make([]byte, defaultDataHandle.HeadLen())
-		// if _, err = io.ReadFull(tcpConn, headData); err != nil {
-		// 	if errors.Is(err, io.EOF) {
-		// 		break
-		// 	}
-		// 	logger.Errorf("[recv error] [read head] %s", err.Error())
-		// 	continue
-		// }
-
-		// // 解析头数据
-		// head, err := defaultDataHandle.UnpackHead(headData)
-
-		// if err != nil {
-		// 	fmt.Printf("[recv error] [unpack head] %s\n", err.Error())
-		// 	continue
-		// }
-
-		// if head == nil {
-		// 	continue
-		// }
-
-		// var (
-		// 	bodyData []byte
-		// 	body     *DataBody
-		// )
-		// if head.Len() > 0 {
-		// 	bodyData = make([]byte, head.Len())
-
-		// 	if _, err = io.ReadFull(tcpConn, bodyData); err != nil {
-		// 		logger.Errorf("[recv error] [read body] %s", err.Error())
-		// 		continue
-		// 	}
-
-		// 	body, err = defaultDataHandle.UnpackBody(bodyData)
-
-		// 	if err != nil {
-		// 		logger.Errorf("[recv error] [unpack body] %s", err.Error())
-		// 		continue
-		// 	}
-		// }
-
-		request := NewRequest(s, message)
-
-		// TODO
-		go s.protocol.Handle(router, request)
 	}
 
 	s.close()
