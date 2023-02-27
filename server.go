@@ -73,9 +73,10 @@ func (s *Server) serve(addr string) error {
 }
 
 func (s *Server) handleConn(tcpConn net.Conn) {
-	defer tcpConn.Close()
 
 	conn := s.NewConn(tcpConn)
+
+	defer conn.Close()
 
 	session := NewSession(conn, s.options.Protocol())
 

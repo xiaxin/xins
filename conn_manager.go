@@ -22,7 +22,6 @@ func NewConnManager() *ConnManager {
 }
 
 func (cm *ConnManager) NewConn(server *Server, conn net.Conn) *Conn {
-
 	return NewConn(server, conn)
 }
 

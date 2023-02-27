@@ -3,6 +3,7 @@ package xins
 import (
 	"errors"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -12,8 +13,10 @@ type Session struct {
 	conn         *Conn
 	closed       chan struct{}
 	requestQueue chan Request
-	// packer       Packer
+
 	protocol Protocol
+
+	timeout time.Duration
 }
 
 func NewSession(conn *Conn, protocol Protocol) *Session {
@@ -22,8 +25,10 @@ func NewSession(conn *Conn, protocol Protocol) *Session {
 		conn:         conn,
 		closed:       make(chan struct{}),
 		requestQueue: make(chan Request, 10),
-		// packer:       packer,
+
 		protocol: protocol,
+
+		timeout: 0,
 	}
 }
 
@@ -40,30 +45,25 @@ func (s *Session) Conn() *Conn {
 }
 
 func (s *Session) read() {
-	// TODO
-	logger.Debug("[conn serve start]")
+	logger.Debugf("[session %s] read start", s.id)
 
-	// TODO
 	for {
-
 		err := s.protocol.Handle(s)
 
 		if nil != err {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			logger.Errorf("[recv error] [read head] %s", err.Error())
+			logger.Errorf("[session %s] read error, %s", s.id, err.Error())
 			continue
 		}
 	}
 
 	s.close()
-	logger.Debugf("session %s read exit because of error", s.id)
+	logger.Debugf("[session %s] read exit because of error", s.id)
 }
 
 func (s *Session) write() {
-
-	tcpConn := s.conn.GetTCPConn()
 
 	for {
 		var request Request
@@ -83,7 +83,7 @@ func (s *Session) write() {
 			continue
 		}
 
-		if _, err = tcpConn.Write(writeBytes); err != nil {
+		if _, err = s.WriteBytes(writeBytes); err != nil {
 			logger.Errorf("session %s conn write err: %s", s.id, err)
 			break
 		}
@@ -92,13 +92,18 @@ func (s *Session) write() {
 	logger.Debugf("session %s writeOutbound exit because of error", s.id)
 }
 
-func (s *Session) Send(request Request) (ok bool) {
+// TODO
+func (s *Session) SendRequest(request Request) (ok bool) {
 	select {
 	case <-s.closed:
 		return false
 	case s.requestQueue <- request:
 		return true
 	}
+}
+
+func (s *Session) WriteBytes(data []byte) (n int, err error) {
+	return s.conn.GetTCPConn().Write(data)
 }
 
 func (s *Session) close() {

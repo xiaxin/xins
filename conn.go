@@ -30,3 +30,7 @@ func (c *Conn) SetID(id uint) {
 func (c *Conn) GetTCPConn() net.Conn {
 	return c.conn
 }
+
+func (c *Conn) Close() error {
+	return c.conn.Close()
+}
