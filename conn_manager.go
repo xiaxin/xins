@@ -33,8 +33,6 @@ func (cm *ConnManager) AddConn(conn *Conn) {
 
 	cm.Table[conn.ID()] = conn
 	cm.lock.Unlock()
-
-	logger.Debugf("[add conn] id:%d", conn.ID())
 }
 
 func (cm *ConnManager) DelConn(conn *Conn) {
@@ -42,6 +40,4 @@ func (cm *ConnManager) DelConn(conn *Conn) {
 	cm.lock.Lock()
 	delete(cm.Table, conn.ID())
 	cm.lock.Unlock()
-
-	logger.Debugf("[del conn] id:%d", conn.ID())
 }

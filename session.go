@@ -2,6 +2,7 @@ package xins
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -17,9 +18,12 @@ type Session struct {
 	protocol Protocol
 
 	timeout time.Duration
+
+	OnStartCallback func(session *Session)
+	OnStopCallback  func(session *Session)
 }
 
-func NewSession(conn *Conn, protocol Protocol) *Session {
+func NewSession(conn *Conn, protocol Protocol, onstart func(session *Session), onstop func(session *Session)) *Session {
 	return &Session{
 		id:           uuid.NewString(),
 		conn:         conn,
@@ -28,7 +32,9 @@ func NewSession(conn *Conn, protocol Protocol) *Session {
 
 		protocol: protocol,
 
-		timeout: 0,
+		timeout:         0,
+		OnStartCallback: onstart,
+		OnStopCallback:  onstop,
 	}
 }
 
@@ -40,12 +46,16 @@ func (s *Session) SetID(id string) {
 	s.id = id
 }
 
+func (s *Session) Protocol() Protocol {
+	return s.protocol
+}
+
 func (s *Session) Conn() *Conn {
 	return s.conn
 }
 
 func (s *Session) read() {
-	logger.Debugf("[session %s] read start", s.id)
+	s.Debug("read start")
 
 	for {
 		err := s.protocol.Handle(s)
@@ -60,7 +70,7 @@ func (s *Session) read() {
 	}
 
 	s.close()
-	logger.Debugf("[session %s] read exit because of error", s.id)
+	s.Debug("read exit because of error")
 }
 
 func (s *Session) write() {
@@ -108,4 +118,12 @@ func (s *Session) WriteBytes(data []byte) (n int, err error) {
 
 func (s *Session) close() {
 	close(s.closed)
+}
+
+func (s *Session) Debug(message string) {
+	logger.Debugf("[sid] [%s] %s", s.ID(), message)
+}
+
+func (s *Session) Debugf(template string, args ...interface{}) {
+	logger.Debugf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
 }

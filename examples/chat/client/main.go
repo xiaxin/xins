@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"time"
 	"xins"
+	"xins/examples/chat/server/object"
 	protocol "xins/protocol/default"
 )
 
@@ -25,18 +27,40 @@ func main() {
 	}
 
 	// go attack(conn)
-	go speak(conn)
+	// go speak(conn)
 	go read(conn)
+	// go toGroupMessage(conn)
 
 	select {}
 
 }
 
-func speak(conn net.Conn) {
+// func speak(conn net.Conn) {
+
+// 	for {
+
+// 		message := protocol.NewMessage(1, []byte("ping"))
+
+// 		m, _ := handle.Pack(message)
+
+// 		conn.Write(m)
+
+// 		time.Sleep(time.Second)
+// 	}
+// }
+
+func toGroupMessage(conn net.Conn) {
 
 	for {
+		groupMessage := object.NewGroupMessage("1", "user-a", "abc")
+		bytes, err := json.Marshal(&groupMessage)
 
-		message := protocol.NewMessage(1, []byte("ping"))
+		if nil != err {
+			fmt.Println(err.Error())
+			continue
+		}
+
+		message := protocol.NewMessage(12, bytes)
 
 		m, _ := handle.Pack(message)
 
@@ -44,6 +68,7 @@ func speak(conn net.Conn) {
 
 		time.Sleep(time.Second)
 	}
+
 }
 
 func read(conn net.Conn) {

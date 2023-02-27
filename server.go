@@ -44,6 +44,10 @@ func (s *Server) DelConn(conn *Conn) {
 func (s *Server) serve(addr string) error {
 	var err error
 
+	if s.options.protocol == nil {
+		return ErrorProtocolIsNil
+	}
+
 	s.listener, err = net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -78,18 +82,27 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 
 	defer conn.Close()
 
-	session := NewSession(conn, s.options.Protocol())
+	session := NewSession(conn, s.options.Protocol(), s.options.OnSessionStart(), s.options.OnSessionStop())
 
 	s.AddConn(conn)
 	defer s.DelConn(conn)
+
+	if session.OnStartCallback != nil {
+		session.OnStartCallback(session)
+	}
 
 	go session.read()
 	go session.write()
 
 	select {
-	case <-session.closed: // wait for session finished.
-	case <-s.stopped: // or the server is stopped.
+	case <-session.closed:
+	case <-s.stopped:
 	}
+
+	if session.OnStopCallback != nil {
+		session.OnStopCallback(session)
+	}
+
 }
 
 func (s *Server) Run(addr string) error {
