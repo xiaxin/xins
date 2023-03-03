@@ -3,7 +3,7 @@ package object
 import (
 	"xins"
 
-	protocol "xins/protocol/default"
+	xinsProtocol "xins/protocol/xins"
 )
 
 type User struct {
@@ -48,8 +48,8 @@ func (u *User) SendGroupMessage(message *GroupMessage) error {
 
 func (u *User) sendRequest(id uint32, data []byte) error {
 
-	u.session.Debugf("%s %s", id, data)
-	message := protocol.NewMessage(id, data)
+	u.session.Debugf("%d %s", id, data)
+	message := xinsProtocol.NewMessage(id, data)
 
 	bytes, err := u.session.Protocol().Pack(message)
 
@@ -57,7 +57,7 @@ func (u *User) sendRequest(id uint32, data []byte) error {
 		return err
 	}
 
-	u.session.SendRequest(xins.NewRequest(u.session, protocol.NewMessage(id, bytes)))
+	u.session.SendRequest(xins.NewRequest(u.session, xinsProtocol.NewMessage(id, bytes)))
 
 	return nil
 }

@@ -3,17 +3,14 @@ package router
 import (
 	"xins"
 	"xins/examples/chat/server/object"
-	protocol "xins/protocol/default"
+	protocol "xins/protocol/xins"
 )
 
 var (
 	codc = &xins.JsonCodec{}
 )
 
-type ChatUser struct {
-}
-
-func (cu *ChatUser) Handle(request xins.Request) {
+func ChatUser(request xins.Request) {
 	session := request.Session()
 	message := request.Message()
 

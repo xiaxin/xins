@@ -2,13 +2,10 @@ package router
 
 import (
 	"xins"
-	protocol "xins/protocol/default"
+	protocol "xins/protocol/xins"
 )
 
-type Ping struct {
-}
-
-func (bm *Ping) Handle(request xins.Request) {
+func Ping(request xins.Request) {
 
 	writeRequest := xins.NewRequest(request.Session(), protocol.NewMessage(1, []byte("pong")))
 

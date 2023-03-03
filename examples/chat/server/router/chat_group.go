@@ -3,17 +3,14 @@ package router
 import (
 	"xins"
 	"xins/examples/chat/server/object"
-	protocol "xins/protocol/default"
+	xinsProtocol "xins/protocol/xins"
 )
 
-type ChatGroup struct {
-}
-
-func (cg *ChatGroup) Handle(request xins.Request) {
+func ChatGroup(request xins.Request) {
 	session := request.Session()
 	message := request.Message()
 
-	data := message.(*protocol.Message)
+	data := message.(*xinsProtocol.Message)
 
 	var gm = new(object.GroupMessage)
 

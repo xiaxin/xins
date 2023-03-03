@@ -9,11 +9,12 @@ import (
 	"time"
 	"xins"
 	"xins/examples/chat/server/object"
-	protocol "xins/protocol/default"
+	protocol "xins/protocol/xins"
+	xinsProtocol "xins/protocol/xins"
 )
 
 var (
-	handle = protocol.NewDefaultPacker()
+	handle = xinsProtocol.NewDefaultPacker()
 	codc   = &xins.JsonCodec{}
 )
 
@@ -27,7 +28,7 @@ func main() {
 	}
 
 	// go attack(conn)
-	// go speak(conn)
+	go speak(conn)
 	go read(conn)
 	// go toGroupMessage(conn)
 
@@ -35,19 +36,19 @@ func main() {
 
 }
 
-// func speak(conn net.Conn) {
+func speak(conn net.Conn) {
 
-// 	for {
+	for {
 
-// 		message := protocol.NewMessage(1, []byte("ping"))
+		message := protocol.NewMessage(1, []byte("ping"))
 
-// 		m, _ := handle.Pack(message)
+		m, _ := handle.Pack(message)
 
-// 		conn.Write(m)
+		conn.Write(m)
 
-// 		time.Sleep(time.Second)
-// 	}
-// }
+		time.Sleep(time.Second)
+	}
+}
 
 func toGroupMessage(conn net.Conn) {
 
@@ -60,7 +61,7 @@ func toGroupMessage(conn net.Conn) {
 			continue
 		}
 
-		message := protocol.NewMessage(12, bytes)
+		message := xinsProtocol.NewMessage(12, bytes)
 
 		m, _ := handle.Pack(message)
 

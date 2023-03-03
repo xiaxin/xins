@@ -5,7 +5,7 @@ import (
 	"xins"
 	"xins/examples/chat/server/object"
 	"xins/examples/chat/server/router"
-	protocol "xins/protocol/default"
+	xinProtocol "xins/protocol/xins"
 
 	"os"
 	"os/signal"
@@ -17,10 +17,10 @@ var (
 )
 
 func main() {
-	protocol := protocol.NewDefaultProtocol()
-	protocol.AddRoute(1, &router.Ping{})
-	protocol.AddRoute(11, &router.ChatUser{})
-	protocol.AddRoute(12, &router.ChatGroup{})
+	protocol := xinProtocol.NewDefaultProtocol()
+	protocol.AddRoute(1, router.Ping)
+	protocol.AddRoute(11, router.ChatUser)
+	protocol.AddRoute(12, router.ChatGroup)
 
 	s := xins.NewServer(
 		xins.ServerProtocol(protocol),
