@@ -9,14 +9,35 @@ import (
 
 type defaultProtocol struct {
 	packer Packer
+	codec  xins.Codec
 	router *Router
 }
 
 func NewDefaultProtocol() *defaultProtocol {
 	return &defaultProtocol{
 		packer: NewDefaultPacker(),
+		codec:  &xins.JsonCodec{},
 		router: NewRouter(),
 	}
+}
+
+func (dp *defaultProtocol) NewMessage(id uint32, data interface{}) (*Message, error) {
+
+	bytes, err := dp.codec.Encode(data)
+
+	if nil != err {
+		return nil, err
+	}
+
+	return NewMessage(id, bytes), nil
+}
+
+func (dp *defaultProtocol) Encode(v interface{}) ([]byte, error) {
+	return dp.codec.Encode(v)
+}
+
+func (dp *defaultProtocol) Decode(data []byte, v interface{}) error {
+	return dp.codec.Decode(data, v)
 }
 
 func (dp *defaultProtocol) Pack(message interface{}) ([]byte, error) {
@@ -27,8 +48,12 @@ func (dp *defaultProtocol) Unpack(reader io.Reader) (interface{}, error) {
 	return dp.packer.Unpack(reader)
 }
 
-func (dp *defaultProtocol) AddRoute(id uint32, route RouteFunc) {
-	dp.router.Add(id, route)
+func (dp *defaultProtocol) AddRoute(id uint32, route RouteFunc, middlewares ...MiddlewareFunc) {
+	dp.router.Add(id, route, middlewares...)
+}
+
+func (dp *defaultProtocol) AddMiddleware(middlewares ...MiddlewareFunc) {
+	dp.router.AddMiddleware(middlewares...)
 }
 
 func (dp *defaultProtocol) Handle(session *xins.Session) error {

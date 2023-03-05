@@ -5,6 +5,7 @@ import (
 )
 
 type Protocol interface {
+	Codec
 	Pack(interface{}) ([]byte, error)
 	Unpack(io.Reader) (interface{}, error)
 

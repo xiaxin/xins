@@ -2,7 +2,7 @@ package router
 
 import (
 	"xins"
-	"xins/examples/chat/server/object"
+	"xins/examples/chat/object"
 	xinsProtocol "xins/protocol/xins"
 )
 

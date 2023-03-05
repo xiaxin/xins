@@ -1,91 +1,26 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net"
-	"time"
-	"xins"
-	"xins/examples/chat/server/object"
-	protocol "xins/protocol/xins"
-	xinsProtocol "xins/protocol/xins"
-)
+	"os"
+	"xins/examples/chat/client/cmd"
 
-var (
-	handle = xinsProtocol.NewDefaultPacker()
-	codc   = &xins.JsonCodec{}
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	//打开连接:
-	conn, err := net.Dial("tcp", "localhost:9900")
-	if err != nil {
-		//由于目标计算机积极拒绝而无法创建连接
-		fmt.Println("Error dialing", err.Error())
-		return // 终止程序
+
+	var rootCmd = &cobra.Command{
+		Use: "main",
 	}
 
-	// go attack(conn)
-	go speak(conn)
-	go read(conn)
-	// go toGroupMessage(conn)
+	rootCmd.AddCommand(cmd.ReadCommand())
+	rootCmd.AddCommand(cmd.PingCommand())
+	rootCmd.AddCommand(cmd.GroupMessageCommand())
 
-	select {}
-
-}
-
-func speak(conn net.Conn) {
-
-	for {
-
-		message := protocol.NewMessage(1, []byte("ping"))
-
-		m, _ := handle.Pack(message)
-
-		conn.Write(m)
-
-		time.Sleep(time.Second)
-	}
-}
-
-func toGroupMessage(conn net.Conn) {
-
-	for {
-		groupMessage := object.NewGroupMessage("1", "user-a", "abc")
-		bytes, err := json.Marshal(&groupMessage)
-
-		if nil != err {
-			fmt.Println(err.Error())
-			continue
-		}
-
-		message := xinsProtocol.NewMessage(12, bytes)
-
-		m, _ := handle.Pack(message)
-
-		conn.Write(m)
-
-		time.Sleep(time.Second)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 
-}
-
-func read(conn net.Conn) {
-
-	for {
-
-		message, err := handle.Unpack(conn)
-
-		if nil != err {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			fmt.Printf("[recv error] [read head] %s\n", err.Error())
-			continue
-		}
-
-		fmt.Println(string(message.Data()))
-	}
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"xins"
-	"xins/examples/chat/server/object"
+	"xins/examples/chat/object"
 	"xins/examples/chat/server/router"
 	xinProtocol "xins/protocol/xins"
 
@@ -18,7 +18,24 @@ var (
 
 func main() {
 	protocol := xinProtocol.NewDefaultProtocol()
-	protocol.AddRoute(1, router.Ping)
+	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
+		return func(request xins.Request) {
+			logger.Debugf("[middleware] %s", "test 1")
+			next(request)
+		}
+	})
+	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
+		return func(request xins.Request) {
+			logger.Debugf("[middleware] %s", "test 2")
+			next(request)
+		}
+	})
+	protocol.AddRoute(1, router.Ping, func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
+		return func(request xins.Request) {
+			logger.Debugf("[middleware] %s", "ping")
+			next(request)
+		}
+	})
 	protocol.AddRoute(11, router.ChatUser)
 	protocol.AddRoute(12, router.ChatGroup)
 
