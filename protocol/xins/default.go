@@ -71,7 +71,7 @@ func (dp *defaultProtocol) Handle(session *xins.Session) error {
 	return nil
 }
 
-func (dp *defaultProtocol) handle(request xins.Request) {
+func (dp *defaultProtocol) handle(request *xins.Request) {
 	// todo
 	defer func() {
 		if r := recover(); r != nil {

@@ -6,7 +6,7 @@ import (
 	xinsProtocol "xins/protocol/xins"
 )
 
-func ChatGroup(request xins.Request) {
+func ChatGroup(request *xins.Request) {
 	session := request.Session()
 	message := request.Message()
 

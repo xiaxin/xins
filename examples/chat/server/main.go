@@ -19,20 +19,21 @@ var (
 func main() {
 	protocol := xinProtocol.NewDefaultProtocol()
 	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request xins.Request) {
-			logger.Debugf("[middleware] %s", "test 1")
+		return func(request *xins.Request) {
+			request.Session().Debugf("[middleware] %s", "test 1")
+			request.Set("test", "a")
 			next(request)
 		}
 	})
 	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request xins.Request) {
-			logger.Debugf("[middleware] %s", "test 2")
+		return func(request *xins.Request) {
+			request.Session().Debugf("[middleware] %s", "test 2")
 			next(request)
 		}
 	})
 	protocol.AddRoute(1, router.Ping, func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request xins.Request) {
-			logger.Debugf("[middleware] %s", "ping")
+		return func(request *xins.Request) {
+			request.Session().Debugf("[middleware] %s", "ping")
 			next(request)
 		}
 	})

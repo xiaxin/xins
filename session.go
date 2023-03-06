@@ -13,7 +13,7 @@ type Session struct {
 	id           string
 	conn         *Conn
 	closed       chan struct{}
-	requestQueue chan Request
+	requestQueue chan *Request
 
 	protocol Protocol
 
@@ -25,10 +25,11 @@ type Session struct {
 
 func NewSession(conn *Conn, protocol Protocol, onstart func(session *Session), onstop func(session *Session)) *Session {
 	return &Session{
-		id:           uuid.NewString(),
-		conn:         conn,
-		closed:       make(chan struct{}),
-		requestQueue: make(chan Request, 10),
+		id:     uuid.NewString(),
+		conn:   conn,
+		closed: make(chan struct{}),
+		// TODO
+		requestQueue: make(chan *Request, 10),
 
 		protocol: protocol,
 
@@ -76,7 +77,7 @@ func (s *Session) read() {
 func (s *Session) write() {
 
 	for {
-		var request Request
+		var request *Request
 		select {
 		case <-s.closed:
 			return
@@ -103,7 +104,7 @@ func (s *Session) write() {
 }
 
 // TODO
-func (s *Session) SendRequest(request Request) (ok bool) {
+func (s *Session) SendRequest(request *Request) (ok bool) {
 	select {
 	case <-s.closed:
 		return false

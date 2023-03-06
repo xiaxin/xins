@@ -10,7 +10,7 @@ var (
 	codc = &xins.JsonCodec{}
 )
 
-func ChatUser(request xins.Request) {
+func ChatUser(request *xins.Request) {
 	session := request.Session()
 	message := request.Message()
 

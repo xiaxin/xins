@@ -13,12 +13,7 @@ type Router struct {
 	middlewares      []MiddlewareFunc
 }
 
-// 路由接口 TODO
-type Route interface {
-	Handle(request xins.Request)
-}
-
-type RouteFunc func(request xins.Request)
+type RouteFunc func(request *xins.Request)
 type MiddlewareFunc func(next RouteFunc) RouteFunc
 
 func NewRouter() *Router {
