@@ -12,12 +12,8 @@ import (
 	"syscall"
 )
 
-var (
-	logger = xins.DefaultLogger()
-)
-
 func main() {
-	protocol := xinProtocol.NewDefaultProtocol()
+	protocol := xinProtocol.NewProtocol()
 	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
 		return func(request *xins.Request) {
 			request.Session().Debugf("[middleware] %s", "test 1")

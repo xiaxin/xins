@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	protocol = xinsProtocol.NewDefaultProtocol()
+	protocol = xinsProtocol.NewProtocol()
 )
 
 func conn() (net.Conn, error) {

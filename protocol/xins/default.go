@@ -13,7 +13,7 @@ type defaultProtocol struct {
 	router *Router
 }
 
-func NewDefaultProtocol() *defaultProtocol {
+func NewProtocol() *defaultProtocol {
 	return &defaultProtocol{
 		packer: NewDefaultPacker(),
 		codec:  &xins.JsonCodec{},
