@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"xins"
 	"xins/examples/chat/object"
+	"xins/examples/chat/server/middleware"
 	"xins/examples/chat/server/router"
-	xinProtocol "xins/protocol/xins"
+
+	protocol "xins/protocol/xins"
 
 	"os"
 	"os/signal"
@@ -13,33 +15,18 @@ import (
 )
 
 func main() {
-	protocol := xinProtocol.NewProtocol()
-	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request *xins.Request) {
-			request.Session().Debugf("[middleware] %s", "test 1")
-			request.Set("test", "a")
-			next(request)
-		}
-	})
-	protocol.AddMiddleware(func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request *xins.Request) {
-			request.Session().Debugf("[middleware] %s", "test 2")
-			next(request)
-		}
-	})
-	protocol.AddRoute(1, router.Ping, func(next xinProtocol.RouteFunc) xinProtocol.RouteFunc {
-		return func(request *xins.Request) {
-			request.Session().Debugf("[middleware] %s", "ping")
-			next(request)
-		}
-	})
-	protocol.AddRoute(11, router.ChatUser)
-	protocol.AddRoute(12, router.ChatGroup)
+	protocol := protocol.NewProtocol()
+
+	protocol.AddRoute(11, router.ChatUser, middleware.AuthMiddleware)
+	protocol.AddRoute(12, router.ChatGroup, middleware.AuthMiddleware)
+
+	protocol.AddRoute(1000, router.Login)
 
 	s := xins.NewServer(
 		xins.ServerProtocol(protocol),
 		xins.SessionOnStart(OnSessionStart),
 		xins.SessionOnStop(OnSessionStop),
+		// TODO 增加最大连接数
 	)
 
 	go s.Run(":9900")

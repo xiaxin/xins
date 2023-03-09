@@ -14,6 +14,9 @@ func main() {
 		Use: "main",
 	}
 
+	rootCmd.AddCommand(cmd.LoginCommand())
+
+	// TODO
 	rootCmd.AddCommand(cmd.ReadCommand())
 	rootCmd.AddCommand(cmd.PingCommand())
 	rootCmd.AddCommand(cmd.GroupMessageCommand())

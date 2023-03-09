@@ -59,6 +59,11 @@ func (s *Session) read() {
 	s.Debug("read start")
 
 	for {
+		select {
+		case <-s.closed:
+			return
+		default:
+		}
 		err := s.protocol.Handle(s)
 
 		if nil != err {
@@ -121,10 +126,16 @@ func (s *Session) close() {
 	close(s.closed)
 }
 
+func (s *Session) Close() {
+	s.close()
+}
+
 func (s *Session) Debug(message string) {
+	// TODO
 	logger.Debugf("[sid] [%s] %s", s.ID(), message)
 }
 
 func (s *Session) Debugf(template string, args ...interface{}) {
+	// TODO
 	logger.Debugf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
 }

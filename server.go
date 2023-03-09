@@ -106,6 +106,8 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 }
 
 func (s *Server) Run(addr string) error {
+	s.options.protocol.PrintRoutes(addr)
+
 	return s.serve(addr)
 }
 

@@ -10,4 +10,6 @@ type Protocol interface {
 	Unpack(io.Reader) (interface{}, error)
 
 	Handle(session *Session) error
+
+	PrintRoutes(addr string)
 }

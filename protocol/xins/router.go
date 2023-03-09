@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"fmt"
+	"runtime/debug"
 	"xins"
 )
 
@@ -14,6 +15,7 @@ type Router struct {
 }
 
 type RouteFunc func(request *xins.Request)
+
 type MiddlewareFunc func(next RouteFunc) RouteFunc
 
 func NewRouter() *Router {
@@ -61,4 +63,34 @@ func (rg *Router) Get(id uint32) (RouteFunc, error) {
 
 func (r *Router) HandleRequest(request *xins.Request) {
 
+	// todo
+	defer func() {
+		if r := recover(); r != nil {
+			// TODO
+			fmt.Printf("%s", fmt.Sprintf("PANIC | %s | %+v \n%s", r, "", debug.Stack()))
+		}
+	}()
+
+	message := request.Message()
+	id := message.(*Message).ID()
+
+	route, err := r.Get(id)
+
+	if nil != err {
+		fmt.Printf("[error] [router handle] error:%s", err)
+		return
+	}
+
+	var mws = r.middlewares
+	if v, has := r.routeMiddlewares[id]; has {
+		mws = append(mws, v...) // append to global ones
+	}
+
+	wrapped := route
+	for i := len(mws) - 1; i >= 0; i-- {
+		m := mws[i]
+		wrapped = m(wrapped)
+	}
+
+	wrapped(request)
 }
