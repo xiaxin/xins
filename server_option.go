@@ -3,8 +3,8 @@ package xins
 type Options struct {
 	protocol Protocol // 协议
 
-	onSessionStart func(session *Session)
-	onSessionStop  func(session *Session)
+	onSessionStart func(session *Session) // session 开始回调
+	onSessionStop  func(session *Session) // session 结束回调
 }
 
 type Option func(*Options)
