@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"xins/core"
 
 	"github.com/spf13/cobra"
-
-	xinsProtocol "xins/protocol/xins"
 )
 
 func ReadCommand() *cobra.Command {
@@ -36,6 +35,6 @@ func read(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		fmt.Println(string(message.(*xinsProtocol.Message).Data()))
+		fmt.Println(string(message.(*core.Message).Data()))
 	}
 }

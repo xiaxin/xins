@@ -2,15 +2,15 @@ package xins
 
 import (
 	"net"
+	"xins/core"
 )
 
 const ()
 
 // 服务器
 type Server struct {
-	connManager *ConnManager
-	listener    net.Listener
-	stopped     chan struct{}
+	listener net.Listener
+	stopped  chan struct{}
 
 	// packer Packer
 	// 协议
@@ -21,7 +21,6 @@ func NewServer(opts ...Option) *Server {
 	options := newOptions(opts...)
 
 	return &Server{
-		connManager: NewConnManager(),
 
 		stopped: make(chan struct{}),
 
@@ -29,23 +28,23 @@ func NewServer(opts ...Option) *Server {
 	}
 }
 
-func (s *Server) NewConn(conn net.Conn) *Conn {
-	return s.connManager.NewConn(s, conn)
-}
+// func (s *Server) NewConn(conn net.Conn) *Conn {
+// 	return s.connManager.NewConn(s, conn)
+// }
 
-func (s *Server) AddConn(conn *Conn) {
-	s.connManager.AddConn(conn)
-}
+// func (s *Server) AddConn(conn *Conn) {
+// 	s.connManager.AddConn(conn)
+// }
 
-func (s *Server) DelConn(conn *Conn) {
-	s.connManager.DelConn(conn)
-}
+// func (s *Server) DelConn(conn *Conn) {
+// 	s.connManager.DelConn(conn)
+// }
 
 func (s *Server) serve(addr string) error {
 	var err error
 
 	if s.options.protocol == nil {
-		return ErrorProtocolIsNil
+		return core.ErrorProtocolIsNil
 	}
 
 	s.listener, err = net.Listen("tcp", addr)
@@ -58,14 +57,14 @@ func (s *Server) serve(addr string) error {
 	for {
 		if s.isStopped() {
 			logger.Debug("server accept loop stopped")
-			return ErrorServerStopped
+			return core.ErrorServerStopped
 		}
 
 		tcpConn, err := s.listener.Accept()
 		if err != nil {
 			if s.isStopped() {
 				logger.Debug("server accept loop stopped")
-				return ErrorServerStopped
+				return core.ErrorServerStopped
 			}
 			logger.Debugf("accept error %s", err)
 			continue
@@ -78,35 +77,19 @@ func (s *Server) serve(addr string) error {
 
 func (s *Server) handleConn(tcpConn net.Conn) {
 
-	conn := s.NewConn(tcpConn)
+	session := core.NewSessionByUUID(tcpConn, s.options.Protocol())
 
-	defer conn.Close()
-
-	session := NewSession(conn, s.options.Protocol(), s.options.OnSessionStart(), s.options.OnSessionStop())
-
-	s.AddConn(conn)
-	defer s.DelConn(conn)
-
-	if session.OnStartCallback != nil {
-		session.OnStartCallback(session)
-	}
-
-	go session.read()
-	go session.write()
+	closed := session.Run()
 
 	select {
-	case <-session.closed:
+	case <-closed:
 	case <-s.stopped:
-	}
-
-	if session.OnStopCallback != nil {
-		session.OnStopCallback(session)
 	}
 
 }
 
 func (s *Server) Run(addr string) error {
-	s.options.protocol.PrintRoutes(addr)
+	s.options.protocol.Info(addr)
 
 	return s.serve(addr)
 }

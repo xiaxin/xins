@@ -1,5 +1,5 @@
 package xins
 
-type SessionOption struct {
-	codec Codec
-}
+// type SessionOption struct {
+// 	codec core.Codec
+// }

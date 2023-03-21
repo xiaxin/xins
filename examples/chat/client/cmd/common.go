@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"net"
-	xinsProtocol "xins/protocol/xins"
+	"xins/core"
 )
 
 var (
-	protocol = xinsProtocol.NewProtocol()
+	protocol = core.NewProtocol()
 )
 
 func conn() (net.Conn, error) {

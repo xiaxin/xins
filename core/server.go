@@ -1,6 +1,9 @@
 package core
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
 type Server struct {
 	listener net.Listener
@@ -75,7 +78,7 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 
 	// defer conn.Close()
 
-	session := NewSession(tcpConn, s.options.Protocol())
+	session := NewSessionByUUID(tcpConn, s.options.Protocol())
 
 	// 	s.AddConn(conn)
 	// 	defer s.DelConn(conn)
@@ -84,7 +87,8 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 		s.options.beforeSession(session)
 	}
 
-	go session.read()
+	// TODO  timeout
+	go session.read(10 * time.Second)
 	go session.write()
 
 	select {

@@ -1,9 +1,8 @@
-package protocol
+package core
 
 import (
 	"fmt"
 	"runtime/debug"
-	"xins"
 )
 
 // 路由
@@ -14,7 +13,7 @@ type Router struct {
 	middlewares      []MiddlewareFunc
 }
 
-type RouteFunc func(request *xins.Request)
+type RouteFunc func(request Context)
 
 type MiddlewareFunc func(next RouteFunc) RouteFunc
 
@@ -61,7 +60,9 @@ func (rg *Router) Get(id uint32) (RouteFunc, error) {
 	return nil, fmt.Errorf("[%d] is not exists", id)
 }
 
-func (r *Router) HandleRequest(request *xins.Request) {
+func (r *Router) HandleRequest(ctx Context) {
+
+	sess := ctx.Session()
 
 	// todo
 	defer func() {
@@ -71,13 +72,13 @@ func (r *Router) HandleRequest(request *xins.Request) {
 		}
 	}()
 
-	message := request.Message()
+	message := ctx.Message()
 	id := message.(*Message).ID()
 
 	route, err := r.Get(id)
 
 	if nil != err {
-		fmt.Printf("[error] [router handle] error:%s", err)
+		sess.Errorf("[error] [router handle] error:%s", err)
 		return
 	}
 
@@ -92,5 +93,5 @@ func (r *Router) HandleRequest(request *xins.Request) {
 		wrapped = m(wrapped)
 	}
 
-	wrapped(request)
+	wrapped(ctx)
 }

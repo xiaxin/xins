@@ -1,12 +1,11 @@
 package middleware
 
 import (
-	"xins"
-	protocol "xins/protocol/xins"
+	"xins/core"
 )
 
-func AuthMiddleware(next protocol.RouteFunc) protocol.RouteFunc {
-	return func(request *xins.Request) {
+func AuthMiddleware(next core.RouteFunc) core.RouteFunc {
+	return func(request core.Context) {
 		// TODO 验证状态
 		next(request)
 	}

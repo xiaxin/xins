@@ -1,12 +1,12 @@
 package object
 
-import "xins"
+import "xins/core"
 
 var (
 	DefaultUserManager  *UserManager
 	DefaultGroupManager *GroupManager
 
-	codc = &xins.JsonCodec{}
+	codc = &core.JsonCodec{}
 
 	tokens = map[string]string{
 		"token-a": "user-a",

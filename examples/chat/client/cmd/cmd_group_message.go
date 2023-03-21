@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"time"
+	"xins/core"
 	"xins/examples/chat/object"
 
 	"github.com/spf13/cobra"
@@ -25,12 +26,15 @@ func groupMessage(cmd *cobra.Command, args []string) {
 
 	for {
 		groupMessage := object.NewGroupMessage("1", "user-a", "abc")
-		message, err := protocol.NewMessage(12, groupMessage)
+
+		bytes, err := protocol.Codec().Marshal(groupMessage)
 
 		if nil != err {
-			fmt.Println("[new-message] error ", err.Error())
+			fmt.Println("[new-message] codec error ", err.Error())
 			continue
 		}
+
+		message := core.NewMessage(12, bytes)
 
 		m, _ := protocol.Pack(message)
 

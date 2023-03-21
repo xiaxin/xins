@@ -1,11 +1,10 @@
 package core
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -16,6 +15,8 @@ var _ Session = &session{}
 // TODO
 type Session interface {
 	DebugLogger
+	ErrorLogger
+
 	ID() any
 	Conn() net.Conn
 	Protocol() Protocol
@@ -33,7 +34,8 @@ type session struct {
 	conn     net.Conn
 	protocol Protocol
 
-	closed chan struct{}
+	closeOnce sync.Once
+	closed    chan struct{}
 
 	ctxPool  sync.Pool // router context pool
 	ctxQueue chan Context
@@ -41,9 +43,13 @@ type session struct {
 	logger *zap.SugaredLogger
 }
 
-func NewSession(conn net.Conn, protocol Protocol) *session {
+func NewSessionByUUID(conn net.Conn, protocol Protocol) *session {
+	return NewSession(uuid.NewString(), conn, protocol)
+}
+
+func NewSession(id any, conn net.Conn, protocol Protocol) *session {
 	sess := &session{
-		id:       uuid.NewString(),
+		id:       id,
 		conn:     conn,
 		protocol: protocol,
 
@@ -74,8 +80,7 @@ func (s *session) Protocol() Protocol {
 }
 
 // TODO
-func (s *session) read() {
-	s.Debug("read start")
+func (s *session) read(timeout time.Duration) {
 
 	for {
 		select {
@@ -83,19 +88,25 @@ func (s *session) read() {
 			return
 		default:
 		}
+
+		if timeout > 0 {
+			if err := s.conn.SetDeadline(time.Now().Add(timeout)); err != nil {
+				s.Errorf("set read deadline err: %s", err)
+				break
+			}
+		}
+
 		err := s.protocol.Handle(s)
 
 		if nil != err {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			logger.Errorf("[session %s] read error, %s", s.id, err.Error())
-			continue
+			// TODO 需要区分正常 Close 和 Timeout 返回的错误
+			s.Errorf("[session %s] read error, %s", s.id, err.Error())
+			break
 		}
 	}
 
 	s.Close()
-	s.Debug("read exit because of error")
+
 }
 
 // TODO
@@ -129,18 +140,21 @@ func (s *session) write() {
 }
 
 func (s *session) Close() {
-	close(s.closed)
+	s.closeOnce.Do(func() { close(s.closed) })
 }
 
 func (s *session) Send(ctx Context) bool {
+	// 发送逻辑，不能放在 select 中，否则会导致随机选取，导致 closed = true 时，函数返回 true。
 	select {
-	case <-ctx.Done():
-		return false
 	case <-s.closed:
 		return false
-	case s.ctxQueue <- ctx:
-		return true
+	case <-ctx.Done():
+		return false
+	default:
 	}
+
+	s.ctxQueue <- ctx
+	return true
 }
 
 func (s *session) writeBytes(data []byte) (n int, err error) {
@@ -157,9 +171,26 @@ func (s *session) Debugf(template string, args ...interface{}) {
 	s.logger.Debugf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
 }
 
+func (s *session) Error(message string) {
+	// TODO
+	s.logger.Errorf("[sid] [%s] %s", s.ID(), message)
+}
+
+func (s *session) Errorf(template string, args ...interface{}) {
+	// TODO
+	s.logger.Errorf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
+}
+
 func (s *session) NewContext() Context {
 	c := s.ctxPool.Get().(*context)
 	c.reset()
 	c.SetSession(s)
 	return c
+}
+
+func (s *session) Run() chan struct{} {
+	go s.read(10 * time.Second)
+	go s.write()
+
+	return s.closed
 }

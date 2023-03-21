@@ -1,4 +1,4 @@
-package protocol
+package core
 
 import (
 	"bytes"
@@ -7,39 +7,32 @@ import (
 	"io"
 )
 
-type Packer interface {
-	Pack(*Message) ([]byte, error)
-	Unpack(io.Reader) (*Message, error)
+type packer struct{}
+
+func NewPacker() *packer {
+	return &packer{}
 }
 
-var _ Packer = &DefaultPacker{}
-
-type DefaultPacker struct{}
-
-func NewDefaultPacker() *DefaultPacker {
-	return &DefaultPacker{}
-}
-
-func (d *DefaultPacker) bytesOrder() binary.ByteOrder {
+func (d *packer) bytesOrder() binary.ByteOrder {
 	return binary.LittleEndian
 }
 
-func (d *DefaultPacker) Pack(msg *Message) ([]byte, error) {
+func (d *packer) Pack(msg *Message) ([]byte, error) {
 	dataSize := len(msg.Data())
 
 	dataBuff := bytes.NewBuffer([]byte{})
 
-	//写dataLen
-	if err := binary.Write(dataBuff, binary.LittleEndian, uint32(dataSize)); err != nil {
+	//写 Len
+	if err := binary.Write(dataBuff, d.bytesOrder(), uint32(dataSize)); err != nil {
 		return nil, err
 	}
 
-	//写msgID
-	if err := binary.Write(dataBuff, binary.LittleEndian, uint32(msg.ID())); err != nil {
+	//写 ID TODO
+	if err := binary.Write(dataBuff, binary.LittleEndian, msg.ID()); err != nil {
 		return nil, err
 	}
 
-	//写data数据
+	//写 Data
 	if err := binary.Write(dataBuff, binary.LittleEndian, msg.Data()); err != nil {
 		return nil, err
 	}
@@ -47,7 +40,7 @@ func (d *DefaultPacker) Pack(msg *Message) ([]byte, error) {
 	return dataBuff.Bytes(), nil
 }
 
-func (d *DefaultPacker) Unpack(reader io.Reader) (*Message, error) {
+func (d *packer) Unpack(reader io.Reader) (*Message, error) {
 	headBytes := make([]byte, 4+4)
 	if _, err := io.ReadFull(reader, headBytes); err != nil {
 		if err == io.EOF {

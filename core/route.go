@@ -1,4 +1,4 @@
-package protocol
+package core
 
 type Route struct {
 	ID     uint32

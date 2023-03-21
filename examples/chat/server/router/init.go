@@ -1,7 +1,7 @@
 package router
 
-import "xins"
+import "xins/core"
 
 var (
-	codc = &xins.JsonCodec{}
+	codc = &core.JsonCodec{}
 )

@@ -1,19 +1,17 @@
 package object
 
 import (
-	"xins"
-
-	xinsProtocol "xins/protocol/xins"
+	"xins/core"
 )
 
 type User struct {
 	id   string
 	name string
 
-	session *xins.Session
+	session core.Session
 }
 
-func NewUser(session *xins.Session, id string, name string) *User {
+func NewUser(session core.Session, id string, name string) *User {
 	return &User{id, name, session}
 }
 
@@ -28,7 +26,7 @@ func (u *User) Name() string {
 // TODO
 func (u *User) SendUserMessage(message *UserMessage) error {
 
-	bytes, err := codc.Encode(message)
+	bytes, err := codc.Marshal(message)
 	if nil != err {
 		return err
 	}
@@ -38,7 +36,7 @@ func (u *User) SendUserMessage(message *UserMessage) error {
 
 // TODO
 func (u *User) SendGroupMessage(message *GroupMessage) error {
-	bytes, err := codc.Encode(message)
+	bytes, err := codc.Marshal(message)
 	if nil != err {
 		return err
 	}
@@ -49,7 +47,7 @@ func (u *User) SendGroupMessage(message *GroupMessage) error {
 func (u *User) sendRequest(id uint32, data []byte) error {
 
 	u.session.Debugf("%d %s", id, data)
-	message := xinsProtocol.NewMessage(id, data)
+	message := core.NewMessage(id, data)
 
 	bytes, err := u.session.Protocol().Pack(message)
 
@@ -57,7 +55,10 @@ func (u *User) sendRequest(id uint32, data []byte) error {
 		return err
 	}
 
-	u.session.SendRequest(xins.NewRequest(u.session, xinsProtocol.NewMessage(id, bytes)))
+	ctx := u.session.NewContext()
+	ctx.SetMessage(core.NewMessage(id, bytes))
+
+	u.session.Send(ctx)
 
 	return nil
 }

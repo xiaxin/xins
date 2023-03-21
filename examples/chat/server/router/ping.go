@@ -1,11 +1,10 @@
 package router
 
 import (
-	"xins"
-	protocol "xins/protocol/xins"
+	"xins/core"
 )
 
-func Ping(request *xins.Request) {
+func Ping(request core.Context) {
 
 	session := request.Session()
 
@@ -15,7 +14,8 @@ func Ping(request *xins.Request) {
 		session.Debugf("middleware getval %s", val)
 	}
 
-	writeRequest := xins.NewRequest(request.Session(), protocol.NewMessage(1, []byte("pong")))
+	ctx := request.Session().NewContext()
+	ctx.SetMessage(core.NewMessage(1, []byte("pong")))
 
-	request.Session().SendRequest(writeRequest)
+	request.Session().Send(ctx)
 }

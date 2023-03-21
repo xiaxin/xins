@@ -1,141 +1,132 @@
 package xins
 
-import (
-	"errors"
-	"fmt"
-	"io"
-	"time"
+// type Session struct {
+// 	id           string
+// 	conn         *Conn
+// 	closed       chan struct{}
+// 	requestQueue chan *Request
 
-	"github.com/google/uuid"
-)
+// 	protocol core.Protocol
 
-type Session struct {
-	id           string
-	conn         *Conn
-	closed       chan struct{}
-	requestQueue chan *Request
+// 	timeout time.Duration
 
-	protocol Protocol
+// 	OnStartCallback func(session *Session)
+// 	OnStopCallback  func(session *Session)
+// }
 
-	timeout time.Duration
+// func NewSession(conn *Conn, protocol core.Protocol, onstart func(session *Session), onstop func(session *Session)) *Session {
+// 	return &Session{
+// 		id:     uuid.NewString(),
+// 		conn:   conn,
+// 		closed: make(chan struct{}),
+// 		// TODO
+// 		requestQueue: make(chan *Request, 10),
 
-	OnStartCallback func(session *Session)
-	OnStopCallback  func(session *Session)
-}
+// 		protocol: protocol,
 
-func NewSession(conn *Conn, protocol Protocol, onstart func(session *Session), onstop func(session *Session)) *Session {
-	return &Session{
-		id:     uuid.NewString(),
-		conn:   conn,
-		closed: make(chan struct{}),
-		// TODO
-		requestQueue: make(chan *Request, 10),
+// 		timeout:         0,
+// 		OnStartCallback: onstart,
+// 		OnStopCallback:  onstop,
+// 	}
+// }
 
-		protocol: protocol,
+// func (s *Session) ID() string {
+// 	return s.id
+// }
 
-		timeout:         0,
-		OnStartCallback: onstart,
-		OnStopCallback:  onstop,
-	}
-}
+// func (s *Session) SetID(id string) {
+// 	s.id = id
+// }
 
-func (s *Session) ID() string {
-	return s.id
-}
+// func (s *Session) Protocol() core.Protocol {
+// 	return s.protocol
+// }
 
-func (s *Session) SetID(id string) {
-	s.id = id
-}
+// func (s *Session) Conn() *Conn {
+// 	return s.conn
+// }
 
-func (s *Session) Protocol() Protocol {
-	return s.protocol
-}
+// func (s *Session) read() {
+// 	s.Debug("read start")
 
-func (s *Session) Conn() *Conn {
-	return s.conn
-}
+// 	for {
+// 		select {
+// 		case <-s.closed:
+// 			return
+// 		default:
+// 		}
+// 		err := s.protocol.Handle(s)
 
-func (s *Session) read() {
-	s.Debug("read start")
+// 		if nil != err {
+// 			if errors.Is(err, io.EOF) {
+// 				break
+// 			}
+// 			logger.Errorf("[session %s] read error, %s", s.id, err.Error())
+// 			continue
+// 		}
+// 	}
 
-	for {
-		select {
-		case <-s.closed:
-			return
-		default:
-		}
-		err := s.protocol.Handle(s)
+// 	s.close()
+// 	s.Debug("read exit because of error")
+// }
 
-		if nil != err {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			logger.Errorf("[session %s] read error, %s", s.id, err.Error())
-			continue
-		}
-	}
+// func (s *Session) write() {
 
-	s.close()
-	s.Debug("read exit because of error")
-}
+// 	for {
+// 		var request *Request
+// 		select {
+// 		case <-s.closed:
+// 			return
+// 		case request = <-s.requestQueue:
+// 		}
 
-func (s *Session) write() {
+// 		writeBytes, err := s.protocol.Pack(request.Message())
 
-	for {
-		var request *Request
-		select {
-		case <-s.closed:
-			return
-		case request = <-s.requestQueue:
-		}
+// 		if nil != err {
+// 			logger.Errorf("session %s pack outbound message err: %s", s.id, err)
+// 			continue
+// 		}
+// 		if writeBytes == nil {
+// 			continue
+// 		}
 
-		writeBytes, err := s.protocol.Pack(request.Message())
+// 		if _, err = s.WriteBytes(writeBytes); err != nil {
+// 			logger.Errorf("session %s conn write err: %s", s.id, err)
+// 			break
+// 		}
+// 	}
+// 	s.close()
+// 	logger.Debugf("session %s writeOutbound exit because of error", s.id)
+// }
 
-		if nil != err {
-			logger.Errorf("session %s pack outbound message err: %s", s.id, err)
-			continue
-		}
-		if writeBytes == nil {
-			continue
-		}
+// // TODO
+// func (s *Session) SendRequest(request *Request) (ok bool) {
+// 	select {
+// 	case <-s.closed:
+// 		return false
+// 	case s.requestQueue <- request:
+// 		return true
+// 	}
+// }
 
-		if _, err = s.WriteBytes(writeBytes); err != nil {
-			logger.Errorf("session %s conn write err: %s", s.id, err)
-			break
-		}
-	}
-	s.close()
-	logger.Debugf("session %s writeOutbound exit because of error", s.id)
-}
+// func (s *Session) WriteBytes(data []byte) (n int, err error) {
+// 	return s.conn.GetTCPConn().Write(data)
+// }
 
-// TODO
-func (s *Session) SendRequest(request *Request) (ok bool) {
-	select {
-	case <-s.closed:
-		return false
-	case s.requestQueue <- request:
-		return true
-	}
-}
+// func (s *Session) close() {
+// 	close(s.closed)
+// }
 
-func (s *Session) WriteBytes(data []byte) (n int, err error) {
-	return s.conn.GetTCPConn().Write(data)
-}
+// func (s *Session) Close() {
+// 	s.close()
+// }
 
-func (s *Session) close() {
-	close(s.closed)
-}
+// func (s *Session) Debug(message string) {
+// 	// TODO
+// 	logger.Debugf("[sid] [%s] %s", s.ID(), message)
+// }
 
-func (s *Session) Close() {
-	s.close()
-}
-
-func (s *Session) Debug(message string) {
-	// TODO
-	logger.Debugf("[sid] [%s] %s", s.ID(), message)
-}
-
-func (s *Session) Debugf(template string, args ...interface{}) {
-	// TODO
-	logger.Debugf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
-}
+// func (s *Session) Debugf(template string, args ...interface{}) {
+// 	// TODO
+// 	logger.Debugf("[sid] [%s] %s", s.ID(), fmt.Sprintf(template, args...))
+// }

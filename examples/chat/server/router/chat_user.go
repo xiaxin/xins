@@ -1,22 +1,21 @@
 package router
 
 import (
-	"xins"
+	"xins/core"
 	"xins/examples/chat/object"
-	protocol "xins/protocol/xins"
 )
 
-func ChatUser(request *xins.Request) {
+func ChatUser(request core.Context) {
 	session := request.Session()
 	message := request.Message()
 
-	data := message.(*protocol.Message)
+	data := message.(*core.Message)
 
 	var um object.UserMessage
 
 	session.Debugf("[recv] [json] %s", data.Data())
 
-	if err := codc.Decode(data.Data(), &um); nil != err {
+	if err := codc.Unmarshal(data.Data(), &um); nil != err {
 		return
 	}
 
