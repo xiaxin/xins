@@ -75,7 +75,7 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 
 	// defer conn.Close()
 
-	session := NewSession(tcpConn, s.options.Protocol(), s.options.BeforeSession(), s.options.AfterSession())
+	session := NewSession(tcpConn, s.options.Protocol())
 
 	// 	s.AddConn(conn)
 	// 	defer s.DelConn(conn)
@@ -88,7 +88,8 @@ func (s *Server) handleConn(tcpConn net.Conn) {
 	go session.write()
 
 	select {
-	// case <-session.closed:
+	// TODO
+	case <-session.closed:
 	case <-s.stopped:
 	}
 
