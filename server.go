@@ -28,18 +28,6 @@ func NewServer(opts ...Option) *Server {
 	}
 }
 
-// func (s *Server) NewConn(conn net.Conn) *Conn {
-// 	return s.connManager.NewConn(s, conn)
-// }
-
-// func (s *Server) AddConn(conn *Conn) {
-// 	s.connManager.AddConn(conn)
-// }
-
-// func (s *Server) DelConn(conn *Conn) {
-// 	s.connManager.DelConn(conn)
-// }
-
 func (s *Server) serve(addr string) error {
 	var err error
 
@@ -52,21 +40,21 @@ func (s *Server) serve(addr string) error {
 		return err
 	}
 
-	logger.Debug("[listener accept]")
+	core.Debug("[listener accept]")
 
 	for {
 		if s.isStopped() {
-			logger.Debug("server accept loop stopped")
+			core.Debug("server accept loop stopped")
 			return core.ErrorServerStopped
 		}
 
 		tcpConn, err := s.listener.Accept()
 		if err != nil {
 			if s.isStopped() {
-				logger.Debug("server accept loop stopped")
+				core.Debug("server accept loop stopped")
 				return core.ErrorServerStopped
 			}
-			logger.Debugf("accept error %s", err)
+			core.Debugf("accept error %s", err)
 			continue
 		}
 

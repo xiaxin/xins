@@ -42,3 +42,11 @@ func init() {
 
 	logger = zapLogger.Sugar()
 }
+
+func Debug(args ...interface{}) {
+	logger.Debug(args)
+}
+
+func Debugf(template string, args ...interface{}) {
+	logger.Debugf(template, args)
+}
