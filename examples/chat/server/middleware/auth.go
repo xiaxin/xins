@@ -4,9 +4,11 @@ import (
 	"xins/core"
 )
 
-func AuthMiddleware(next core.RouteFunc) core.RouteFunc {
-	return func(request core.Context) {
-		// TODO 验证状态
-		next(request)
+func AuthMiddleware() core.RouteFunc {
+	return func(ctx core.Context) {
+		sess := ctx.Session()
+		sess.Debug("auth start")
+		ctx.Next()
+		sess.Debug("auth end")
 	}
 }

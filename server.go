@@ -5,8 +5,6 @@ import (
 	"xins/core"
 )
 
-const ()
-
 // 服务器
 type Server struct {
 	listener net.Listener

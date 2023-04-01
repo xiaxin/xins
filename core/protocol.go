@@ -67,8 +67,6 @@ func (d *protocol) Handle(session Session) error {
 	go d.router.HandleRequest(ctx)
 
 	return nil
-
-	return nil
 }
 
 func (p *protocol) Info(addr string) string {
@@ -95,10 +93,10 @@ func (p *protocol) Unmarshal(data []byte, v interface{}) error {
 
 //
 
-func (p *protocol) AddRoute(id uint32, route RouteFunc, middlewares ...MiddlewareFunc) {
+func (p *protocol) AddRoute(id uint32, route RouteFunc, middlewares ...RouteFunc) {
 	p.router.Add(id, route, middlewares...)
 }
 
-func (p *protocol) AddMiddleware(middlewares ...MiddlewareFunc) {
+func (p *protocol) AddMiddleware(middlewares ...RouteFunc) {
 	p.router.AddMiddleware(middlewares...)
 }

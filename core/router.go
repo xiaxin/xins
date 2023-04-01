@@ -8,39 +8,35 @@ import (
 // 路由
 type Router struct {
 	// TODO
-	routes           map[uint32]RouteFunc
-	routeMiddlewares map[uint32][]MiddlewareFunc
-	middlewares      []MiddlewareFunc
+	routes      map[uint32]*Route
+	middlewares []RouteFunc
 }
 
-type RouteFunc func(request Context)
+type RouteFunc func(ctx Context)
 
-type MiddlewareFunc func(next RouteFunc) RouteFunc
+// type MiddlewareFunc func(next RouteFunc) RouteFunc
 
 func NewRouter() *Router {
 	return &Router{
-		routes:           make(map[uint32]RouteFunc),
-		routeMiddlewares: make(map[uint32][]MiddlewareFunc),
+		routes: make(map[uint32]*Route),
 	}
 }
 
-func (r *Router) Add(id uint32, route RouteFunc, fns ...MiddlewareFunc) {
+// Add 添加路由 TODO
+func (r *Router) Add(id uint32, route RouteFunc, middlewares ...RouteFunc) {
 
-	r.routes[id] = route
+	size := len(r.middlewares) + len(middlewares) + 1
 
-	ms := make([]MiddlewareFunc, 0, len(fns))
+	fns := make([]RouteFunc, size)
 
-	for _, fn := range fns {
-		if fn != nil {
-			ms = append(ms, fn)
-		}
-	}
-	if len(ms) != 0 {
-		r.routeMiddlewares[id] = ms
-	}
+	copy(fns, r.middlewares)
+	copy(fns[len(r.middlewares):], middlewares)
+	fns[size-1] = route
+
+	r.routes[id] = NewRoute(id, fns)
 }
 
-func (r *Router) AddMiddleware(middlewares ...MiddlewareFunc) {
+func (r *Router) AddMiddleware(middlewares ...RouteFunc) {
 	for _, m := range middlewares {
 		if m != nil {
 			r.middlewares = append(r.middlewares, m)
@@ -52,7 +48,7 @@ func (rg *Router) Del(id uint32) {
 	delete(rg.routes, id)
 }
 
-func (rg *Router) Get(id uint32) (RouteFunc, error) {
+func (rg *Router) Get(id uint32) (*Route, error) {
 	if route, ok := rg.routes[id]; ok {
 		return route, nil
 	}
@@ -60,6 +56,7 @@ func (rg *Router) Get(id uint32) (RouteFunc, error) {
 	return nil, fmt.Errorf("[%d] is not exists", id)
 }
 
+// TODO
 func (r *Router) HandleRequest(ctx Context) {
 
 	sess := ctx.Session()
@@ -82,16 +79,7 @@ func (r *Router) HandleRequest(ctx Context) {
 		return
 	}
 
-	var mws = r.middlewares
-	if v, has := r.routeMiddlewares[id]; has {
-		mws = append(mws, v...) // append to global ones
-	}
+	ctx.SetHandles(route.Handles)
 
-	wrapped := route
-	for i := len(mws) - 1; i >= 0; i-- {
-		m := mws[i]
-		wrapped = m(wrapped)
-	}
-
-	wrapped(ctx)
+	ctx.Run()
 }

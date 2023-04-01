@@ -26,6 +26,11 @@ type Context interface {
 	Remove(key string)
 
 	Send() bool
+	Next() // TODO 添加说明
+
+	Run() // TODO 添加说明
+
+	SetHandles(handles []RouteFunc)
 }
 
 type context struct {
@@ -36,12 +41,17 @@ type context struct {
 
 	m      sync.RWMutex
 	keyval map[string]interface{}
+
+	index   int
+	handles []RouteFunc
 }
 
 func NewContext() *context {
 	return &context{
 		rawCtx: rawCtx.Background(),
 		keyval: make(map[string]any),
+
+		index: 0,
 	}
 }
 
@@ -119,4 +129,22 @@ func (c *context) reset() {
 
 func (c *context) Send() bool {
 	return c.session.Send(c)
+}
+
+func (c *context) SetHandles(handles []RouteFunc) {
+	c.handles = handles
+}
+
+func (c *context) Run() {
+	for c.index < len(c.handles) {
+		c.handles[c.index](c)
+		c.index++
+	}
+}
+func (c *context) Next() {
+	c.index++
+	for c.index < len(c.handles) {
+		c.handles[c.index](c)
+		c.index++
+	}
 }
