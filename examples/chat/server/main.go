@@ -15,9 +15,7 @@ import (
 func main() {
 	protocol := core.NewProtocol()
 
-	protocol.AddMiddleware(middleware.AuthMiddleware())
-
-	protocol.AddRoute(1, router.Ping, middleware.AuthMiddleware())
+	protocol.AddRoute(1, router.Ping, middleware.AMiddleware(), middleware.BMiddleware())
 
 	protocol.AddRoute(11, router.ChatUser, middleware.AuthMiddleware())
 	protocol.AddRoute(12, router.ChatGroup, middleware.AuthMiddleware())

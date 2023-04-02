@@ -22,11 +22,3 @@ func newOptions(opt ...Option) *Options {
 func (o *Options) Protocol() Protocol {
 	return o.protocol
 }
-
-func (o *Options) BeforeSession() func(session Session) {
-	return o.BeforeSession()
-}
-
-func (o *Options) AfterSession() func(session Session) {
-	return o.afterSession
-}
